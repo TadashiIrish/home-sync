@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'presentation/home/loading_screen.dart';
 import 'presentation/home/home_screen.dart';
 
-void main() {
+
+// void main() {
+//   runApp(const HomeSyncApp());
+// }
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const HomeSyncApp());
 }
 

@@ -1,73 +1,8 @@
-// import 'package:flutter/material.dart';
-//
-// class SettingsScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Settings'),
-//       ),
-//       body: ListView(
-//         children: [
-//           _buildSettingsSection(context, 'Room Settings', [
-//             _buildSettingItem(context, 'Rename Room'),
-//             _buildSettingItem(context, 'Delete Room'),
-//             _buildSettingItem(context, 'Reorder Rooms'),
-//           ]),
-//           _buildSettingsSection(context, 'Device Settings', [
-//             _buildSettingItem(context, 'Rename Device'),
-//             _buildSettingItem(context, 'Assign Device to Room'),
-//             _buildSettingItem(context, 'Set Device Icon'),
-//           ]),
-//           _buildSettingsSection(context, 'Connection Settings', [
-//             _buildSettingItem(context, 'WiFi Configuration'),
-//             _buildSettingItem(context, 'Bluetooth Pairing'),
-//             _buildSettingItem(context, 'Reconnect Lost Devices'),
-//           ]),
-//           _buildSettingsSection(context, 'Reset', [
-//             _buildSettingItem(context, 'Reset Room', isDestructive: true),
-//             _buildSettingItem(context, 'Reset Device', isDestructive: true),
-//             _buildSettingItem(context, 'Reset Application', isDestructive: true),
-//           ]),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildSettingsSection(BuildContext context, String title, List<Widget> items) {
-//     return Card(
-//       margin: EdgeInsets.all(10),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Padding(
-//             padding: const EdgeInsets.all(10.0),
-//             child: Text(
-//               title,
-//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-//             ),
-//           ),
-//           Column(children: items),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildSettingItem(BuildContext context, String label, {bool isDestructive = false}) {
-//     return ListTile(
-//       title: Text(label, style: TextStyle(color: isDestructive ? Colors.red : Colors.grey[55])),
-//       trailing: Icon(Icons.arrow_forward_ios, size: 16),
-//       onTap: () {
-//         // Navigate to detailed settings page or show dialog
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('$label selected')),
-//         );
-//       },
-//     );
-//   }
-// }
+import 'package:homesync/presentation/widgets/wifi_screen.dart';
+
 import '../home/home_screen.dart';
 import '../widgets/device_card.dart';
+import '../widgets/bt_screen.dart';
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -77,17 +12,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   List<String> rooms = ['Living Room', 'Bedroom', 'Kitchen'];
+  List<String> devices = ['Smart Light', 'Smart Fan', 'Smart Lock'];
 
-  void _renameRoom(int index) {
-    TextEditingController controller = TextEditingController(text: rooms[index]);
+  void _renameItem(int index, List<String> list, String title) {
+    TextEditingController controller = TextEditingController(text: list[index]);
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Rename Room'),
+          title: Text('Rename $title'),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(hintText: 'Enter new room name'),
+            decoration: InputDecoration(hintText: 'Enter new name'),
           ),
           actions: [
             TextButton(
@@ -97,9 +33,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 String newName = controller.text.trim();
-                if (newName.isNotEmpty && newName != rooms[index]) {
+                if (newName.isNotEmpty && newName != list[index]) {
                   setState(() {
-                    rooms[index] = newName;
+                    list[index] = newName;
                   });
                 }
                 Navigator.pop(context);
@@ -112,13 +48,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _deleteRoom(int index) {
+  void _deleteItem(int index, List<String> list, String title) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete ${rooms[index]}?'),
-          content: Text('Are you sure you want to delete this room?'),
+          title: Text('Delete ${list[index]}?'),
+          content: Text('Are you sure you want to delete this $title?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -127,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  rooms.removeAt(index);
+                  list.removeAt(index);
                 });
                 Navigator.pop(context);
               },
@@ -139,31 +75,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
-      body: ListView(
-        children: [
-          _buildSettingsSection(context, 'Room Settings', [
-            ListTile(
-              title: Text('Rename Room'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => _showRoomList(context, isRenaming: true),
+  void _resetRooms() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Reset Rooms'),
+          content: Text('All the saved rooms will be deleted.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
             ),
-            ListTile(
-              title: Text('Delete Room'),
-              trailing: Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => _showRoomList(context, isRenaming: false),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  rooms.clear();
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Confirm', style: TextStyle(color: Colors.red)),
             ),
-            _buildSettingItem(context, 'Reorder Rooms'),
-          ]),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 
-  void _showRoomList(BuildContext context, {required bool isRenaming}) {
+  void _resetDevicesInRoom() {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -172,14 +111,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
           itemBuilder: (context, index) {
             return ListTile(
               title: Text(rooms[index]),
-              trailing: Icon(isRenaming ? Icons.edit : Icons.delete, color: isRenaming ? null : Colors.red),
               onTap: () {
                 Navigator.pop(context);
-                if (isRenaming) {
-                  _renameRoom(index);
-                } else {
-                  _deleteRoom(index);
-                }
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text('Reset Devices in ${rooms[index]}?'),
+                      content: Text('All the devices of ${rooms[index]} will be lost.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Add logic to reset devices in the selected room
+                            Navigator.pop(context);
+                          },
+                          child: Text('Confirm', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
             );
           },
@@ -188,6 +143,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _factoryReset() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Factory Reset'),
+          content: Text('All the saved data will be cleared.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  rooms.clear();
+                  devices.clear();
+                });
+                Navigator.pop(context);
+              },
+              child: Text('Confirm', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
   Widget _buildSettingsSection(BuildContext context, String title, List<Widget> items) {
     return Card(
       margin: EdgeInsets.all(10),
@@ -207,15 +189,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingItem(BuildContext context, String label, {bool isDestructive = false}) {
+  Widget _buildListOption(BuildContext context, String title, List<String> list, String itemType, IconData icon, {bool isDelete = false}) {
     return ListTile(
-      title: Text(label, style: TextStyle(color: isDestructive ? Colors.red : Colors.black)),
+      title: Text(title, style: TextStyle(color: isDelete ? Colors.red : Colors.grey[55])),
       trailing: Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label selected')),
+      onTap: () => _showItemList(context, list, itemType, icon, isDelete),
+    );
+  }
+
+  Widget _buildSimpleOption(BuildContext context, String title, IconData icon, {VoidCallback? onTap}) {
+    return ListTile(
+      title: Text(title),
+      leading: Icon(icon),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
+    );
+  }
+
+  void _showItemList(BuildContext context, List<String> list, String itemType, IconData icon, bool isDelete) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ListView.builder(
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text(list[index]),
+              trailing: Icon(icon, color: isDelete ? Colors.red : null),
+              onTap: () {
+                Navigator.pop(context);
+                if (isDelete) {
+                  _deleteItem(index, list, itemType);
+                } else {
+                  _renameItem(index, list, itemType);
+                }
+              },
+            );
+          },
         );
       },
+    );
+  }
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Settings')),
+      body: ListView(
+        children: [
+          _buildSettingsSection(context, 'Room Settings', [
+            _buildListOption(context, 'Rename Room', rooms, 'Room', Icons.edit),
+            _buildListOption(context, 'Delete Room', rooms, 'Room', Icons.delete, isDelete: true),
+          ]),
+          _buildSettingsSection(context, 'Device Settings', [
+            _buildListOption(context, 'Rename Device', devices, 'Device', Icons.edit),
+            _buildListOption(context, 'Delete Device', devices, 'Device', Icons.delete, isDelete: true),
+          ]),
+          _buildSettingsSection(context, 'Configuration Settings', [
+            _buildSimpleOption(context, 'Bluetooth Configuration', Icons.bluetooth,onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => BluetoothScanScreen()));
+            }),
+            _buildSimpleOption(context, 'WiFi Configuration', Icons.wifi, onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => WiFiScreen()));
+            }),
+            _buildSimpleOption(context, 'Reconnect Lost Devices', Icons.refresh),
+          ]),
+          _buildSettingsSection(context, 'Reset Settings', [
+            _buildSimpleOption(context, 'Reset Rooms', Icons.room_preferences, onTap: _resetRooms),
+            _buildSimpleOption(context, 'Reset Devices in a Room', Icons.devices_other, onTap: _resetDevicesInRoom),
+            _buildSimpleOption(context, 'Factory Reset', Icons.restore, onTap: _factoryReset,),
+          ]),
+        ],
+      ),
     );
   }
 }
